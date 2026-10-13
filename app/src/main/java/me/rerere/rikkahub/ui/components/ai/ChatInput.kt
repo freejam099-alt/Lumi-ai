@@ -2,12 +2,12 @@ package me.rerere.rikkahub.ui.components.ai
 
 import androidx.compose.foundation.background
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
-import me.rerere.rikkahub.ui.theme.SeaGlassTint
+import me.rerere.ui.glass.SeaGlassTint
 import me.rerere.rikkahub.ui.theme.SeaIcons
-import me.rerere.rikkahub.ui.theme.rememberSeaGlassMorphShape
-import me.rerere.rikkahub.ui.theme.seaGlass
-import me.rerere.rikkahub.ui.theme.seaGlassPress
-import me.rerere.rikkahub.ui.theme.seaGlassShadow
+import me.rerere.ui.glass.rememberSeaGlassMorphShape
+import me.rerere.ui.glass.seaGlass
+import me.rerere.ui.glass.seaGlassPress
+import me.rerere.ui.glass.seaGlassShadow
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -154,7 +154,7 @@ fun ChatInput(
     onStopVoiceMode: () -> Unit = {},
 ) {
     val toaster = LocalToaster.current
-    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val containerColor = MaterialTheme.colorScheme.surfaceBright
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -461,10 +461,11 @@ private fun ActionIconButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(38.dp),
+        modifier = Modifier.size(40.dp),
         shape = CircleShape,
         tonalElevation = 0.dp,
-        color = Color.Transparent,
+        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center

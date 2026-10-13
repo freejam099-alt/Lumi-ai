@@ -23,10 +23,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "me.rerere.rikkahub"
+        applicationId = "app.lumi.ai"
         minSdk = 26
         targetSdk = 37
-        versionCode = 191
+        // versionCode naik terus di CI supaya update tidak ditolak sebagai downgrade
+        versionCode = 1000 + (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0)
         versionName = "2.5.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

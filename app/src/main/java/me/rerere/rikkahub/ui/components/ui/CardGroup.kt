@@ -48,8 +48,8 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.graphics.lerp
 import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
-import me.rerere.rikkahub.ui.theme.seaGlassColor
-import me.rerere.rikkahub.ui.theme.seaGlassPress
+import me.rerere.ui.glass.seaGlassColor
+import me.rerere.ui.glass.seaGlassPress
 
 private val CardGroupCorner = 28.dp
 private val CardGroupItemSpacing = 2.dp

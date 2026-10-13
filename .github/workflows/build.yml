@@ -69,14 +69,14 @@ jobs:
               {
                 "client_info": {
                   "mobilesdk_app_id": "1:000000000000:android:0000000000000001",
-                  "android_client_info": { "package_name": "me.rerere.rikkahub" }
+                  "android_client_info": { "package_name": "app.lumi.ai" }
                 },
                 "api_key": [{ "current_key": "placeholder" }]
               },
               {
                 "client_info": {
                   "mobilesdk_app_id": "1:000000000000:android:0000000000000002",
-                  "android_client_info": { "package_name": "me.rerere.rikkahub.debug" }
+                  "android_client_info": { "package_name": "app.lumi.ai.debug" }
                 },
                 "api_key": [{ "current_key": "placeholder" }]
               }
