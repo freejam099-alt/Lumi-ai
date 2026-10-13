@@ -112,7 +112,14 @@ jobs:
       - name: Build release APK (arm64, R8 minified)
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          set -o pipefail
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee build.log || {
+            code=$?
+            # tampilkan error penting sebagai annotation agar mudah dibaca
+            grep -E "^e: |error:|What went wrong|Execution failed|Caused by|R8:|Missing class|AAPT" build.log \
+              | head -40 | while IFS= read -r line; do echo "::error::${line:0:900}"; done
+            exit $code
+          }
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
