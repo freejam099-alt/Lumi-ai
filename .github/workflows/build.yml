@@ -1,10 +1,13 @@
-name: Build APK
+name: Build Release APK (arm64)
 
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 concurrency:
   group: build-${{ github.ref }}
@@ -83,17 +86,49 @@ jobs:
           JSON
           fi
 
-      - name: Build debug APK
+      # Tanda tangan: pakai secret KEY_BASE64 + SIGNING_CONFIG bila ada.
+      # Kalau tidak ada, buat keystore baru supaya APK release tetap bisa diinstal.
+      - name: Prepare signing
+        env:
+          KEY_BASE64: ${{ secrets.KEY_BASE64 }}
+          SIGNING_CONFIG: ${{ secrets.SIGNING_CONFIG }}
+        run: |
+          if [ -n "$KEY_BASE64" ] && [ -n "$SIGNING_CONFIG" ]; then
+            echo "$KEY_BASE64" | base64 -d > app/app.key
+            printf '%s\n' "$SIGNING_CONFIG" > local.properties
+          else
+            keytool -genkeypair -v -keystore app/app.key -storetype PKCS12 \
+              -alias lumi -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass lumi-ci-pass -keypass lumi-ci-pass \
+              -dname "CN=Lumi AI, O=Lumi, C=ID"
+            {
+              echo "storeFile=app.key"
+              echo "storePassword=lumi-ci-pass"
+              echo "keyAlias=lumi"
+              echo "keyPassword=lumi-ci-pass"
+            } > local.properties
+          fi
+
+      - name: Build release APK (arm64, R8 minified)
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: lumi-ai-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: lumi-ai-arm64-release
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      - name: Publish latest release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Lumi AI (arm64 release)
+          prerelease: true
+          files: app/build/outputs/apk/release/*.apk
 
       - name: Upload build reports on failure
         if: failure()
