@@ -100,7 +100,7 @@ internal suspend fun fetchDuckDuckGoLite(
 internal suspend fun fetchDuckDuckGoImages(
     query: String,
     httpGet: suspend (String) -> String,
-): List<SearchResult.KeylessImage> {
+): List<KeylessImage> {
     val landing = httpGet("https://duckduckgo.com/?q=${query.urlEncode()}&iax=images&ia=images")
     val vqd = parseDuckDuckGoVqd(landing) ?: return emptyList()
     val json = httpGet(
@@ -126,7 +126,7 @@ internal suspend fun fetchWikipedia(
 internal suspend fun fetchWikimediaCommonsImages(
     query: String,
     httpGet: suspend (String) -> String,
-): List<SearchResult.KeylessImage> {
+): List<KeylessImage> {
     val url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search" +
         "&gsrsearch=${query.urlEncode()}&gsrnamespace=6&gsrlimit=8" +
         "&prop=imageinfo&iiprop=url|mime|extmetadata&iiurlwidth=1280&format=json"
@@ -136,7 +136,7 @@ internal suspend fun fetchWikimediaCommonsImages(
 internal suspend fun fetchWikipediaPageImages(
     query: String,
     httpGet: suspend (String) -> String,
-): List<SearchResult.KeylessImage> {
+): List<KeylessImage> {
     val url = "https://en.wikipedia.org/w/api.php?action=query&generator=search" +
         "&gsrsearch=${query.urlEncode()}&gsrlimit=6" +
         "&prop=pageimages|info&inprop=url&piprop=original|thumbnail&pithumbsize=800&format=json"
