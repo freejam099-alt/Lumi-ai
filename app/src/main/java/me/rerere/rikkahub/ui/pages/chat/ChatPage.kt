@@ -1,5 +1,11 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import me.rerere.ui.glass.GlassIconButton
+import me.rerere.ui.glass.SeaGlassTint
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
@@ -603,10 +609,12 @@ private fun TopBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
         navigationIcon = {
             if (!bigScreen) {
-                IconButton(
+                GlassIconButton(
                     onClick = {
                         scope.launch { drawerState.open() }
-                    }
+                    },
+                    modifier = Modifier.padding(start = 8.dp),
+                    tint = SeaGlassTint.Periwinkle,
                 ) {
                     Icon(HugeIcons.Menu03, "Messages")
                 }
@@ -647,18 +655,22 @@ private fun TopBar(
             }
         },
         actions = {
-            IconButton(
+            GlassIconButton(
                 onClick = {
                     onClickMenu()
-                }
+                },
+                tint = SeaGlassTint.Periwinkle,
             ) {
                 Icon(if (previewMode) HugeIcons.Cancel01 else HugeIcons.LeftToRightListBullet, "Chat Options")
             }
-
-            IconButton(
+            Spacer(Modifier.width(8.dp))
+            GlassIconButton(
                 onClick = {
                     onNewChat()
-                }
+                },
+                modifier = Modifier.padding(end = 8.dp),
+                tint = SeaGlassTint.Sky,
+                shape = RoundedCornerShape(16.dp),
             ) {
                 Icon(HugeIcons.MessageAdd01, "New Message")
             }

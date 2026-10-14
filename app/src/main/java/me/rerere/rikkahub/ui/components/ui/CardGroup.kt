@@ -50,6 +50,7 @@ import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.ui.glass.seaGlassColor
 import me.rerere.ui.glass.seaGlassPress
+import me.rerere.ui.glass.SeaGlassTint
 
 private val CardGroupCorner = 28.dp
 private val CardGroupItemSpacing = 2.dp
@@ -191,27 +192,27 @@ fun CardGroupIcon(
         targetValue = contentColor,
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
-    // Sea Glass: squircle kaca berwarna + grain + bayangan berwarna, tanpa border
+    // Sea Glass: squircle kaca berwarna + grain + bayangan berwarna, tanpa border.
+    // Tint dipilih dari kelompok warna yang dikirim pemanggil supaya tetap jelas di mode terang/gelap.
     val dark = LocalDarkMode.current
-    val glassShape = RoundedCornerShape(16.dp)
+    val cs = MaterialTheme.colorScheme
+    val tint = when (containerColor) {
+        cs.secondaryContainer -> SeaGlassTint.Periwinkle
+        cs.tertiaryContainer -> SeaGlassTint.Aqua
+        cs.errorContainer -> SeaGlassTint.Rose
+        else -> SeaGlassTint.Sky
+    }
     Box(
         modifier = modifier
-            .size(44.dp)
-            .seaGlassColor(
-                shape = glassShape,
-                top = lerp(animatedContainerColor, Color.White, if (dark) 0.12f else 0.4f),
-                bottom = animatedContainerColor,
-                shadowColor = animatedContainerColor,
-                dark = dark,
-                elevation = 6.dp,
-            ),
+            .size(46.dp)
+            .seaGlass(RoundedCornerShape(16.dp), tint, dark, elevation = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = animatedContentColor,
+            tint = tint.content(dark),
         )
     }
 }

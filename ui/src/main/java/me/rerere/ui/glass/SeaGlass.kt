@@ -41,23 +41,23 @@ enum class SeaGlassTint(
 ) {
     // Speaker aktif di referensi: biru langit -> cyan terang di bawah
     Sky(
-        Color(0xFFBFE6FB), Color(0xFFA6D8F7), Color(0xFFCFFDFF), Color(0xFF2B6089),
-        Color(0xFF3F86B8), Color(0xFF2B6A98), Color(0xFF58B8D8), Color(0xFFE1F4FF),
+        Color(0xFFB4E1FB), Color(0xFF8CCBF5), Color(0xFFC4FCFF), Color(0xFF16507C),
+        Color(0xFF4FA3DA), Color(0xFF2F7DB8), Color(0xFF63D6F0), Color(0xFFEAF7FF),
     ),
     // Pill Mail/Meet di referensi: periwinkle
     Periwinkle(
-        Color(0xFFC3D3F7), Color(0xFF9DB3F2), Color(0xFFD4E6FF), Color(0xFF2A3F8C),
-        Color(0xFF6580D6), Color(0xFF4660B8), Color(0xFF86A7F0), Color(0xFFE6ECFF),
+        Color(0xFFBBCDF8), Color(0xFF8AA4F0), Color(0xFFCFE2FF), Color(0xFF1B2F7A),
+        Color(0xFF7894E6), Color(0xFF516DC8), Color(0xFF93B4F5), Color(0xFFF0F4FF),
     ),
     // Tombol kirim / nav teal
     Aqua(
-        Color(0xFF9FE3DE), Color(0xFF55C2C3), Color(0xFFC9FFF9), Color(0xFF0C4E55),
-        Color(0xFF3A9EA0), Color(0xFF237A84), Color(0xFF63D3CC), Color(0xFFDDFFFB),
+        Color(0xFF8EE0DA), Color(0xFF3DBBBD), Color(0xFFBFFFF7), Color(0xFF05424A),
+        Color(0xFF44B5B6), Color(0xFF248B96), Color(0xFF6FE0D8), Color(0xFFE6FFFC),
     ),
     // Tombol akhiri panggilan di referensi
     Rose(
-        Color(0xFFFFCBC6), Color(0xFFF7A5A8), Color(0xFFFFDAD6), Color(0xFF86302F),
-        Color(0xFFC87078), Color(0xFFA14C58), Color(0xFFE79AA0), Color(0xFFFFE3E1),
+        Color(0xFFFFC2BC), Color(0xFFF59397), Color(0xFFFFD3CE), Color(0xFF7A2222),
+        Color(0xFFDB7E88), Color(0xFFB4586A), Color(0xFFF2A5AC), Color(0xFFFFEDEB),
     ),
     Lime(
         Color(0xFFD7F7A6), Color(0xFF93E56E), Color(0xFFF1FFC9), Color(0xFF245A1D),
@@ -123,15 +123,15 @@ fun Modifier.seaGlassShadow(
 
 /** Isi kaca: tepi terang, inti pekat lembut (blotch), cahaya bawah, rim-light, grain. */
 private fun Modifier.glassFill(
-    edge: Color, core: Color, glow: Color, dark: Boolean, grain: Float,
+    edge: Color, core: Color, glow: Color, dark: Boolean, grain: Float, alpha: Float = 1f,
 ): Modifier = this.drawBehind {
     val w = size.width
     val h = size.height
-    drawRect(edge)
+    drawRect(edge.copy(alpha = alpha))
     // inti lebih pekat, lembut ke arah tepi
     drawRect(
         Brush.radialGradient(
-            colors = listOf(core.copy(alpha = 0.95f), core.copy(alpha = 0.55f), Color.Transparent),
+            colors = listOf(core.copy(alpha = 0.98f * alpha), core.copy(alpha = 0.6f * alpha), Color.Transparent),
             center = Offset(w * 0.5f, h * 0.42f),
             radius = maxOf(w, h) * 0.62f,
         )
@@ -139,7 +139,7 @@ private fun Modifier.glassFill(
     // cahaya di bagian bawah (cyan/terang)
     drawRect(
         Brush.verticalGradient(
-            colors = listOf(Color.Transparent, glow.copy(alpha = if (dark) 0.35f else 0.75f)),
+            colors = listOf(Color.Transparent, glow.copy(alpha = (if (dark) 0.45f else 0.8f) * alpha)),
             startY = h * 0.45f,
             endY = h,
         )
@@ -164,7 +164,7 @@ fun Modifier.seaGlass(
 ): Modifier = this
     .seaGlassShadow(shape, tint.shadow(dark), elevation)
     .clip(shape)
-    .glassFill(tint.edge(dark), tint.core(dark), tint.glow(dark), dark, if (grain) 0.9f else 0f)
+    .glassFill(tint.edge(dark), tint.core(dark), tint.glow(dark), dark, if (grain) 1f else 0f)
 
 /** Kaca dengan warna sendiri, mis. diturunkan dari ColorScheme (ikon Settings). */
 fun Modifier.seaGlassColor(
@@ -218,3 +218,15 @@ fun rememberSeaGlassMorphShape(active: Boolean): Shape {
     )
     return remember(percent) { RoundedCornerShape(percent = percent.toInt().coerceIn(0, 50)) }
 }
+
+/**
+ * Lapisan kaca tembus pandang di atas blur backdrop (depth of field): konten di belakang
+ * tetap terbaca samar, sementara warna, grain, dan rim-light kaca laut tetap terlihat jelas.
+ */
+fun Modifier.seaGlassFrost(
+    tint: SeaGlassTint,
+    dark: Boolean,
+    strength: Float = 0.62f,
+): Modifier = this.glassFill(
+    tint.edge(dark), tint.core(dark), tint.glow(dark), dark, grain = 0.85f, alpha = strength,
+)

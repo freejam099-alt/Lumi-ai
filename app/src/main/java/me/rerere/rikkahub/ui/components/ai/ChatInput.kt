@@ -161,7 +161,7 @@ fun ChatInput(
 
     val themeShape = MaterialTheme.shapes.largeIncreased
     // Sea Glass: input bar lebih besar dan membulat lembut
-    val containerShape = RoundedCornerShape(32.dp)
+    val containerShape = RoundedCornerShape(28.dp)
     val seaDark = LocalDarkMode.current
     val modelListState = rememberModelListState(
         modelId = chatModel?.id,
@@ -261,7 +261,7 @@ fun ChatInput(
                 color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else containerColor,
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (voiceState.phase != VoicePhase.Off) {
@@ -607,7 +607,7 @@ private fun TextInputRow(
             state = state.textContent,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 56.dp)
+                .heightIn(min = 48.dp)
                 .testTag("chat_input")
                 .contentReceiver(receiveContentListener)
                 .onFocusChanged {
@@ -839,7 +839,7 @@ private fun FullScreenEditor(
                         modifier = Modifier
                             .padding(bottom = 2.dp)
                             .fillMaxSize(),
-                        shape = RoundedCornerShape(32.dp),
+                        shape = RoundedCornerShape(28.dp),
                         placeholder = {
                             Text(stringResource(R.string.chat_input_placeholder))
                         },

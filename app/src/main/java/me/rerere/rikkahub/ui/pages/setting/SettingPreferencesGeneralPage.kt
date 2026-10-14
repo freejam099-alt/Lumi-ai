@@ -136,25 +136,6 @@ fun SettingPreferencesGeneralPage(vm: SettingVM = koinViewModel()) {
                         supportingContent = { Text(stringResource(R.string.setting_display_page_background_effect_desc)) },
                         headlineContent = { Text(stringResource(R.string.setting_display_page_background_effect_title)) },
                     )
-                    if (displaySetting.enableBlurEffect) {
-                        formItem(
-                            headlineContent = { Text(stringResource(R.string.setting_display_page_background_effect_type)) },
-                        ) {
-                            ConnectedChoiceButtons(
-                                options = BackgroundEffectType.entries,
-                                selected = displaySetting.backgroundEffectType,
-                                onSelect = { updateDisplaySetting(displaySetting.copy(backgroundEffectType = it)) },
-                            ) { type, selected ->
-                                ConnectedChoiceLabel(
-                                    text = when (type) {
-                                        BackgroundEffectType.BLUR -> stringResource(R.string.setting_display_page_background_effect_blur)
-                                        BackgroundEffectType.GLASS -> stringResource(R.string.setting_display_page_background_effect_glass)
-                                    },
-                                    selected = selected,
-                                )
-                            }
-                        }
-                    }
                     switchItem(
                         checked = displaySetting.enableMessageGenerationHapticEffect,
                         onCheckedChange = {

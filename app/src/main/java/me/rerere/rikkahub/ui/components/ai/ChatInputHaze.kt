@@ -19,6 +19,8 @@ import dev.chrisbanes.haze.glass.material3.Material3
 import me.rerere.rikkahub.data.datastore.BackgroundEffectType
 import me.rerere.rikkahub.data.datastore.DisplaySetting
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
+import me.rerere.ui.glass.SeaGlassTint
+import me.rerere.ui.glass.seaGlassFrost
 
 /**
  * 输入框容器的背景效果（模糊或玻璃），未开启时原样返回。
@@ -33,35 +35,17 @@ internal fun Modifier.chatInputHaze(
     shape: RoundedCornerShape,
 ): Modifier {
     if (!displaySetting.enableBlurEffect) return this
-    return when (displaySetting.backgroundEffectType) {
-        BackgroundEffectType.BLUR -> hazeBlur(
+    // Sea Glass (Material 4): backdrop blur halus (depth of field) + lapisan kaca berwarna,
+    // grain, dan rim-light. Menggantikan pilihan Blur dan Glass lama.
+    val darkMode = LocalDarkMode.current
+    return this
+        .hazeBlur(
             input = HazeInput.Sources(hazeState),
             style = HazeBlurStyle.Material3 {
-                blurRadius(12.dp)
+                blurRadius(20.dp)
             },
         )
-
-        BackgroundEffectType.GLASS -> {
-            val darkMode = LocalDarkMode.current
-            hazeGlass(
-                input = HazeInput.Sources(hazeState),
-                style = GlassStyle.Material3(
-                    containerColor = containerColor,
-                    tint = containerColor.copy(alpha = 0.3f),
-                ) {
-                    appearanceResponse(dark = darkMode)
-                    // Keep background text from competing with the input text.
-                    optics(
-                        GlassDefaults.optics.copy(
-                            blurRadius = OpticalSizeValue.Fixed(16.dp),
-                            depth = OpticalSizeValue.Fixed(0.5f),
-                        )
-                    )
-                    shape(shape)
-                },
-            )
-        }
-    }
+        .seaGlassFrost(tint = SeaGlassTint.Sky, dark = darkMode, strength = 0.6f)
 }
 
 // Haze 按系统夜间模式选玻璃的明暗预设，应用内单独设置主题时会选错（深色主题下被提亮发白），
