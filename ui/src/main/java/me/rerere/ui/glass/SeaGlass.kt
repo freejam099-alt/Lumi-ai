@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -121,38 +122,39 @@ fun Modifier.seaGlassShadow(
     spotColor = color.copy(alpha = 0.90f),
 )
 
-/** Isi kaca: tepi terang, inti pekat lembut (blotch), cahaya bawah, rim-light, grain. */
+/** Isi kaca: tepi terang, inti pekat lembut (blotch), cahaya bawah, rim-light, grain. Brush di-cache per ukuran. */
 private fun Modifier.glassFill(
     edge: Color, core: Color, glow: Color, dark: Boolean, grain: Float, alpha: Float = 1f,
-): Modifier = this.drawBehind {
+): Modifier = this.drawWithCache {
     val w = size.width
     val h = size.height
-    drawRect(edge.copy(alpha = alpha))
-    // inti lebih pekat, lembut ke arah tepi
-    drawRect(
-        Brush.radialGradient(
-            colors = listOf(core.copy(alpha = 0.98f * alpha), core.copy(alpha = 0.6f * alpha), Color.Transparent),
-            center = Offset(w * 0.5f, h * 0.42f),
-            radius = maxOf(w, h) * 0.62f,
-        )
+    val edgeColor = edge.copy(alpha = alpha)
+    val blotch = Brush.radialGradient(
+        colors = listOf(core.copy(alpha = 0.98f * alpha), core.copy(alpha = 0.6f * alpha), Color.Transparent),
+        center = Offset(w * 0.5f, h * 0.42f),
+        radius = maxOf(w, h) * 0.62f,
     )
-    // cahaya di bagian bawah (cyan/terang)
-    drawRect(
-        Brush.verticalGradient(
-            colors = listOf(Color.Transparent, glow.copy(alpha = (if (dark) 0.45f else 0.8f) * alpha)),
-            startY = h * 0.45f,
-            endY = h,
-        )
+    val glowBrush = Brush.verticalGradient(
+        colors = listOf(Color.Transparent, glow.copy(alpha = (if (dark) 0.45f else 0.8f) * alpha)),
+        startY = h * 0.45f,
+        endY = h,
     )
-    // rim-light lembut di atas
-    drawRect(
-        Brush.verticalGradient(
-            colors = listOf(Color.White.copy(alpha = if (dark) 0.14f else 0.38f), Color.Transparent),
-            endY = h * 0.35f,
-        )
+    val rim = Brush.verticalGradient(
+        colors = listOf(Color.White.copy(alpha = if (dark) 0.14f else 0.38f), Color.Transparent),
+        endY = h * 0.35f,
     )
-    drawRect(GrainBrush, alpha = grain)
+    onDrawBehind {
+        drawRect(edgeColor)
+        drawRect(blotch)
+        drawRect(glowBrush)
+        drawRect(rim)
+        if (grain > 0f) drawRect(GrainBrush, alpha = grain)
+    }
 }
+
+/** Lapisan grain terrazzo saja, untuk dipakai di atas gambar/gradien buatan sendiri. */
+fun Modifier.seaGlassGrain(alpha: Float = 0.8f): Modifier =
+    this.drawBehind { drawRect(GrainBrush, alpha = alpha) }
 
 /** Permukaan kaca laut berwarna. Tanpa border. */
 fun Modifier.seaGlass(

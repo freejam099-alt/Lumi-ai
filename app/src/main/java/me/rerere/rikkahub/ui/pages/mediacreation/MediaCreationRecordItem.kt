@@ -232,30 +232,8 @@ private fun InputThumbnail(
 
 @Composable
 private fun RecordProgress(record: MediaCreationRecord) {
-    // 当前阶段已经持续的时间
-    val elapsed by produceState(initialValue = elapsedSeconds(record.updateAt), record.updateAt) {
-        while (true) {
-            value = elapsedSeconds(record.updateAt)
-            delay(1000)
-        }
-    }
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ContainedLoadingIndicator(modifier = Modifier.size(32.dp))
-            Text(
-                text = "${record.status.label}  %d:%02d".format(elapsed / 60, elapsed % 60),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
+    // Animasi kotak kaca yang terbentuk sesuai rasio, lengkap dengan tahap dari server
+    GlassFormingTile(record = record)
 }
 
 private fun elapsedSeconds(since: Instant): Long = Duration.between(since, Instant.now()).seconds.coerceAtLeast(0)
