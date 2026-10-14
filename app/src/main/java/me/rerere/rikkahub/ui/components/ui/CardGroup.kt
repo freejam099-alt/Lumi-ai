@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.lerp
 import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.ui.glass.seaGlassColor
+import me.rerere.ui.glass.seaGlass
 import me.rerere.ui.glass.seaGlassPress
 import me.rerere.ui.glass.SeaGlassTint
 
