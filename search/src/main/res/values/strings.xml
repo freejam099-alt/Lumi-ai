@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
+  <string name="open_search_desc">Open Search needs no API key. It combines Firecrawl Keyless, Qwant, DuckDuckGo, Bing, Google News, Wikipedia, Wikimedia Commons, Open-Meteo, and Jina Reader for web, news, weather, encyclopedia, and image search, and can scrape pages as markdown.</string>
   <string name="bing_desc">Note that Bing search is crawler-based, which may be unstable and is not recommended.</string>
   <string name="click_to_get_api_key">Click to get API Key</string>
   <string name="searxng_desc_1">settings.yml needs to enable json format support:</string>

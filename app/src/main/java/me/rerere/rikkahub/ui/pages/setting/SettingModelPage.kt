@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.pages.setting
 
+import me.rerere.rikkahub.ui.theme.SeaIcons
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -147,6 +148,17 @@ private fun ModelSettingsPage(settings: Settings, vm: SettingVM, contentPadding:
         providers = settings.providers,
         type = ModelType.CHAT,
     )
+    // Model gambar dan video dipisahkan: daftar modelnya difilter per tipe
+    val imageModel = rememberModelListState(
+        modelId = settings.imageGenerationModelId,
+        providers = settings.providers,
+        type = ModelType.IMAGE,
+    )
+    val videoModel = rememberModelListState(
+        modelId = settings.videoGenerationModelId,
+        providers = settings.providers,
+        type = ModelType.VIDEO,
+    )
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -230,8 +242,36 @@ private fun ModelSettingsPage(settings: Settings, vm: SettingVM, contentPadding:
                 )
             }
         }
+        item {
+            val containerColor = MaterialTheme.colorScheme.primaryContainer
+            val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            CardGroup {
+                modelItem(
+                    icon = SeaIcons.Picture,
+                    title = R.string.setting_model_page_image_model,
+                    description = R.string.setting_model_page_image_model_desc,
+                    state = imageModel,
+                    iconContainerColor = containerColor,
+                    iconContentColor = contentColor,
+                )
+                modelItem(
+                    icon = SeaIcons.Video,
+                    title = R.string.setting_model_page_video_model,
+                    description = R.string.setting_model_page_video_model_desc,
+                    state = videoModel,
+                    iconContainerColor = containerColor,
+                    iconContentColor = contentColor,
+                )
+            }
+        }
     }
 
+    ModelListSheet(state = imageModel) {
+        vm.updateSettings { latest -> latest.copy(imageGenerationModelId = it.id) }
+    }
+    ModelListSheet(state = videoModel) {
+        vm.updateSettings { latest -> latest.copy(videoGenerationModelId = it.id) }
+    }
     ModelListSheet(state = chatModel) {
         vm.updateSettings { latest -> latest.copy(chatModelId = it.id) }
     }

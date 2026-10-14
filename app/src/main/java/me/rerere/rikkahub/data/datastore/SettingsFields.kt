@@ -81,6 +81,7 @@ internal val SETTINGS_FIELDS: List<SettingsField<*, *>> = with(SettingsStore) {
         uuid(TRANSLATE_MODEL, Settings::translateModeId) { copy(translateModeId = it) },
         plain(ENABLE_SUGGESTION, Settings::enableSuggestion) { copy(enableSuggestion = it) },
         uuid(IMAGE_GENERATION_MODEL, Settings::imageGenerationModelId) { copy(imageGenerationModelId = it) },
+        uuid(VIDEO_GENERATION_MODEL, Settings::videoGenerationModelId) { copy(videoGenerationModelId = it) },
         plain(TITLE_PROMPT, Settings::titlePrompt) { copy(titlePrompt = it) },
         plain(TRANSLATION_PROMPT, Settings::translatePrompt) { copy(translatePrompt = it) },
         plain(TRANSLATE_THINKING_BUDGET, Settings::translateThinkingBudget) { copy(translateThinkingBudget = it) },

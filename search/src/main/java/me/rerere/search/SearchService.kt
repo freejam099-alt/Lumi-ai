@@ -49,6 +49,7 @@ interface SearchService<T : SearchServiceOptions> {
                 is SearchServiceOptions.ExaOptions -> ExaSearchService
                 is SearchServiceOptions.ZhipuOptions -> ZhipuSearchService
                 is SearchServiceOptions.DoubaoOptions -> DoubaoSearchService
+                is SearchServiceOptions.KeylessOptions -> KeylessSearchService
                 is SearchServiceOptions.BingLocalOptions -> BingSearchService
                 is SearchServiceOptions.SearXNGOptions -> SearXNGService
                 is SearchServiceOptions.LinkUpOptions -> LinkUpService
@@ -104,6 +105,9 @@ data class SearchResult(
     val images: List<String> = emptyList(),
     /** Local time at which this result was retrieved; not a publication date. */
     val retrievedAt: String? = null,
+    val intent: String? = null,
+    val usedBackends: List<String> = emptyList(),
+    val note: String? = null,
 ) {
     @Serializable
     data class SearchResultItem(
@@ -113,6 +117,8 @@ data class SearchResult(
         /** Provider-supplied publication date. Null means that no date was supplied. */
         val publishedDate: String? = null,
         val highlights: List<String> = emptyList(),
+        /** Nama backend/sumber (Open Search). */
+        val source: String? = null,
     )
 }
 
@@ -147,9 +153,10 @@ sealed class SearchServiceOptions {
         get() = TYPES[this::class] ?: "Unknown"
 
     companion object {
-        val DEFAULT = BingLocalOptions()
+        val DEFAULT = KeylessOptions()
 
         val TYPES = mapOf(
+            KeylessOptions::class to "Open Search",
             BingLocalOptions::class to "Bing",
             RikkaHubOptions::class to "RikkaHub",
             ZhipuOptions::class to "智谱",
@@ -171,6 +178,12 @@ sealed class SearchServiceOptions {
             CustomJsOptions::class to "Custom JS",
         )
     }
+
+    @Serializable
+    @SerialName("keyless")
+    data class KeylessOptions(
+        override val id: Uuid = Uuid.random()
+    ) : SearchServiceOptions()
 
     @Serializable
     @SerialName("bing_local")

@@ -1,5 +1,7 @@
 package me.rerere.rikkahub.ui.components.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
+import me.rerere.ui.glass.seaGlass
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -64,6 +66,10 @@ fun AutoAIIcon(
     loading: Boolean = false,
     color: Color = MaterialTheme.colorScheme.secondaryContainer,
 ) {
+    if (name == "Open Search") {
+        OpenSearchGlassIcon(modifier)
+        return
+    }
     val path = remember(name) { computeAIIconByName(name) } ?: run {
         TextAvatar(text = name, modifier = modifier, loading = loading, color = color)
         return
@@ -92,5 +98,30 @@ fun SiliconFlowPowerByIcon(modifier: Modifier = Modifier) {
         AsyncImage(model = R.drawable.siliconflow_light, contentDescription = null, modifier = modifier)
     } else {
         AsyncImage(model = R.drawable.siliconflow_dark, contentDescription = null, modifier = modifier)
+    }
+}
+
+/** Ikon Open Search: squircle kaca aqua dengan globe + kaca pembesar. */
+@Composable
+private fun OpenSearchGlassIcon(modifier: Modifier) {
+    val dark = me.rerere.rikkahub.ui.theme.LocalDarkMode.current
+    val tint = me.rerere.ui.glass.SeaGlassTint.Aqua
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.then(
+            Modifier.seaGlass(
+                androidx.compose.foundation.shape.RoundedCornerShape(percent = 30),
+                tint,
+                dark,
+                elevation = 4.dp,
+            )
+        ),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = me.rerere.rikkahub.ui.theme.SeaIcons.OpenSearch,
+            contentDescription = null,
+            tint = tint.content(dark),
+            modifier = Modifier.fillMaxSize(0.7f),
+        )
     }
 }

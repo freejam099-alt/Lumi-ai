@@ -1440,4 +1440,9 @@
   <string name="memory_file_page_edit_warning">Usahakan tidak mengedit memori secara manual. Mintalah AI di obrolan untuk mengingat atau mengubahnya untuk Anda.</string>
   <string name="setting_provider_page_context_length">Panjang Konteks</string>
   <string name="setting_provider_page_context_length_custom">Khusus</string>
+  <string name="setting_model_page_image_model">Model Gambar</string>
+  <string name="setting_model_page_image_model_desc">Model untuk membuat gambar</string>
+  <string name="setting_model_page_video_model">Model Video</string>
+  <string name="setting_model_page_video_model_desc">Model untuk membuat video</string>
+  <string name="setting_provider_page_video_model">Video</string>
 </resources>

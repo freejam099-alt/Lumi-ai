@@ -1585,4 +1585,9 @@
   <string name="memory_file_page_edit_warning">Try not to edit memories by hand. Ask the AI in chat to remember or change things for you instead.</string>
   <string name="setting_provider_page_context_length">Context Length</string>
   <string name="setting_provider_page_context_length_custom">Custom</string>
+  <string name="setting_model_page_image_model">Image Model</string>
+  <string name="setting_model_page_image_model_desc">Model used to generate images</string>
+  <string name="setting_model_page_video_model">Video Model</string>
+  <string name="setting_model_page_video_model_desc">Model used to generate videos</string>
+  <string name="setting_provider_page_video_model">Video</string>
 </resources>

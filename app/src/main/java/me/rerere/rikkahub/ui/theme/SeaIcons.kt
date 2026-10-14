@@ -152,6 +152,23 @@ object SeaIcons {
         )
     }
 
+    val Video by lazy {
+        icon(
+            "SeaVideo",
+            "M5 6h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM16 10.500l4.500-2.500v8l-4.500-2.500",
+            "M5 6h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z",
+        )
+    }
+
+    /** Open Search: globe + kaca pembesar */
+    val OpenSearch by lazy {
+        icon(
+            "SeaOpenSearch",
+            "M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM3 11h16M11 3c2.2 2.3 3.3 5 3.3 8S13.200 16.700 11 19c-2.200-2.300-3.300-5-3.300-8S8.800 5.300 11 3zM17.500 17.500L21 21",
+            "M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16z",
+        )
+    }
+
     /** Tombol kirim: panah ke atas yang membulat */
     val Send by lazy { icon("SeaSend", "M12 19V6M6.500 11.500L12 6l5.500 5.500") }
     val Stop by lazy {

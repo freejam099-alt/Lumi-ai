@@ -201,6 +201,7 @@ private fun SearchServiceOptionsEditor(
         is SearchServiceOptions.PerplexityOptions -> {
             PerplexityOptions(options) { onUpdateOptions(it) }
         }
+        is SearchServiceOptions.KeylessOptions -> {}
         is SearchServiceOptions.BingLocalOptions -> {}
         is SearchServiceOptions.FirecrawlOptions -> {
             FirecrawlOptions(options) { onUpdateOptions(it) }
