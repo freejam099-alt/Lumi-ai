@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitAll
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -97,7 +98,7 @@ object KeylessSearchService : SearchService<SearchServiceOptions.KeylessOptions>
     }
 }
 
-internal const val KEYLESS_BACKEND_TIMEOUT_MS = 8_000L
+internal const val KEYLESS_BACKEND_TIMEOUT_MS = 15_000L
 internal const val KEYLESS_MAX_IMAGES = 6
 
 internal suspend fun searchKeyless(
@@ -107,18 +108,26 @@ internal suspend fun searchKeyless(
     acceptLanguage: String = SearchService.acceptLanguage,
     httpGet: suspend (String) -> String = ::keylessHttpGet,
     httpPostJson: suspend (String, String) -> KeylessHttpResponse = ::keylessHttpPostJson,
+    httpPostForm: suspend (String, String) -> String = ::keylessHttpPostForm,
     bingSearch: suspend (String) -> List<SearchResultItem> = ::keylessBingSearch,
     backendTimeoutMs: Long = KEYLESS_BACKEND_TIMEOUT_MS,
 ): SearchResult = coroutineScope {
     val intent = classifyKeylessIntent(query, topic)
 
+    val failures = java.util.concurrent.ConcurrentLinkedQueue<String>()
+
     suspend fun <T> backend(name: String, block: suspend () -> T?): T? {
+        var error: String? = null
         val value = withTimeoutOrNull(backendTimeoutMs) {
             runCatching { block() }
-                .onFailure { keylessLogW(TAG, "$name failed: ${it.message}") }
+                .onFailure {
+                    error = it.message ?: it::class.java.simpleName
+                    keylessLogW(TAG, "$name failed: $error")
+                }
                 .getOrNull()
         }
         if (value == null) {
+            failures.add("$name: ${error ?: "timeout"}".take(160))
             keylessLogW(TAG, "$name timed out or failed")
         }
         return value
@@ -145,58 +154,33 @@ internal suspend fun searchKeyless(
             listOfNotNull(backend("wttr.in") { fetchWttrWeather(query, httpGet) }).useful()
         }
     }
+    suspend fun parallel(vararg blocks: suspend () -> KeylessFetch?): List<KeylessFetch> = coroutineScope {
+        blocks.map { block -> async { block() } }.awaitAll().useful()
+    }
+
     val newsJob = async {
         if (intent != KeylessIntent.NEWS && intent != KeylessIntent.SPORTS) return@async emptyList()
-        listOf(
-            KeylessFetch(
-                "Google News RSS",
-                items = backend("Google News RSS") { fetchGoogleNews(query, acceptLanguage, httpGet) }.orEmpty(),
-            ),
-            backend("Qwant News") {
-                fetchQwant(QwantKind.NEWS, query, acceptLanguage, resultSize, httpGet)
-            },
-            KeylessFetch(
-                "DuckDuckGo News",
-                items = backend("DuckDuckGo News") { fetchDuckDuckGoHtml(query, httpGet, news = true) }.orEmpty(),
-            ),
-        ).useful()
+        parallel(
+            { KeylessFetch("Google News RSS", items = backend("Google News RSS") { fetchGoogleNews(query, acceptLanguage, httpGet) }.orEmpty()) },
+            { backend("Qwant News") { fetchQwant(QwantKind.NEWS, query, acceptLanguage, resultSize, httpGet) } },
+            { KeylessFetch("DuckDuckGo News", items = backend("DuckDuckGo News") { fetchDuckDuckGoHtml(query, httpGet, news = true) }.orEmpty()) },
+            { KeylessFetch("Mojeek", items = backend("Mojeek News") { fetchMojeek(query, httpGet) }.orEmpty()) },
+        )
     }
     val webJob = async {
         if (intent == KeylessIntent.IMAGES) return@async emptyList()
-        val html = backend("DuckDuckGo HTML") { fetchDuckDuckGoHtml(query, httpGet) }.orEmpty()
-        val lite = backend("DuckDuckGo Lite") { fetchDuckDuckGoLite(query, httpGet) }.orEmpty()
         val includeEncyclopedia = intent == KeylessIntent.ENCYCLOPEDIA || intent == KeylessIntent.GENERAL
-        listOf(
-            backend("Qwant Web") {
-                fetchQwant(QwantKind.WEB, query, acceptLanguage, resultSize, httpGet)
-            },
-            KeylessFetch("DuckDuckGo HTML", items = html),
-            KeylessFetch("DuckDuckGo Lite", items = lite),
-            KeylessFetch(
-                "Bing",
-                items = backend("Bing") {
-                    bingSearch("https://www.bing.com/search?q=${query.urlEncode()}")
-                }.orEmpty(),
-            ),
-            if (includeEncyclopedia) {
-                backend("DuckDuckGo Instant Answer") { fetchDuckDuckGoInstant(query, httpGet) }
-            } else {
-                null
-            },
-            if (includeEncyclopedia) {
-                KeylessFetch(
-                    "Wikipedia",
-                    items = backend("Wikipedia") { fetchWikipedia(query, resultSize, httpGet) }.orEmpty(),
-                )
-            } else {
-                null
-            },
-            if (intent == KeylessIntent.NEWS || intent == KeylessIntent.GENERAL) {
-                backend("Jina Search") { fetchJinaSearch(query, httpGet) }
-            } else {
-                null
-            },
-        ).useful()
+        parallel(
+            { backend("Qwant Web") { fetchQwant(QwantKind.WEB, query, acceptLanguage, resultSize, httpGet) } },
+            { KeylessFetch("Mojeek", items = backend("Mojeek") { fetchMojeek(query, httpGet) }.orEmpty()) },
+            { KeylessFetch("DuckDuckGo HTML", items = backend("DuckDuckGo HTML") { fetchDuckDuckGoHtmlPost(query, httpPostForm) }.orEmpty()) },
+            { KeylessFetch("DuckDuckGo HTML", items = backend("DuckDuckGo HTML GET") { fetchDuckDuckGoHtml(query, httpGet) }.orEmpty()) },
+            { KeylessFetch("DuckDuckGo Lite", items = backend("DuckDuckGo Lite") { fetchDuckDuckGoLite(query, httpGet) }.orEmpty()) },
+            { KeylessFetch("Bing", items = backend("Bing") { bingSearch("https://www.bing.com/search?q=${query.urlEncode()}") }.orEmpty()) },
+            { if (includeEncyclopedia) backend("DuckDuckGo Instant Answer") { fetchDuckDuckGoInstant(query, httpGet) } else null },
+            { if (includeEncyclopedia) KeylessFetch("Wikipedia", items = backend("Wikipedia") { fetchWikipedia(query, resultSize, httpGet) }.orEmpty()) else null },
+            { if (intent == KeylessIntent.NEWS || intent == KeylessIntent.GENERAL) backend("Jina Search") { fetchJinaSearch(query, httpGet) } else null },
+        )
     }
     val imageJob = async {
         val wantImages = intent == KeylessIntent.IMAGES ||
@@ -204,33 +188,35 @@ internal suspend fun searchKeyless(
             intent == KeylessIntent.ENCYCLOPEDIA ||
             intent == KeylessIntent.GENERAL
         if (!wantImages) return@async emptyList()
-        listOf(
-            backend("Qwant Images") {
-                fetchQwant(QwantKind.IMAGES, query, acceptLanguage, KEYLESS_MAX_IMAGES, httpGet)
-            },
-            KeylessFetch(
-                "DuckDuckGo Images",
-                images = backend("DuckDuckGo Images") { fetchDuckDuckGoImages(query, httpGet) }.orEmpty(),
-            ),
-            KeylessFetch(
-                "Wikimedia Commons",
-                images = backend("Wikimedia Commons") { fetchWikimediaCommonsImages(query, httpGet) }.orEmpty(),
-            ),
-            KeylessFetch(
-                "Wikipedia Images",
-                images = backend("Wikipedia Images") { fetchWikipediaPageImages(query, httpGet) }.orEmpty(),
-            ),
-        ).useful()
+        val imageFirst = intent == KeylessIntent.IMAGES
+        parallel(
+            { if (imageFirst) KeylessFetch("Bing Images", images = backend("Bing Images") { fetchBingImages(query, httpGet) }.orEmpty()) else null },
+            { if (imageFirst) KeylessFetch("Openverse", images = backend("Openverse") { fetchOpenverseImages(query, httpGet) }.orEmpty()) else null },
+            { backend("Qwant Images") { fetchQwant(QwantKind.IMAGES, query, acceptLanguage, KEYLESS_MAX_IMAGES, httpGet) } },
+            { KeylessFetch("DuckDuckGo Images", images = backend("DuckDuckGo Images") { fetchDuckDuckGoImages(query, httpGet) }.orEmpty()) },
+            { KeylessFetch("Wikimedia Commons", images = backend("Wikimedia Commons") { fetchWikimediaCommonsImages(query, httpGet) }.orEmpty()) },
+            { KeylessFetch("Wikipedia Images", images = backend("Wikipedia Images") { fetchWikipediaPageImages(query, httpGet) }.orEmpty()) },
+        )
     }
 
     val fetches = firecrawlJob.await() + weatherJob.await() + newsJob.await() + webJob.await() + imageJob.await()
-    mergeKeylessResults(
-        query = query,
-        intent = intent,
-        resultSize = resultSize,
-        fetches = fetches,
-        usedBackends = fetches.map { it.backend }.distinct(),
-    )
+    val failureText = failures.toList().distinct().joinToString("; ")
+    val merged = try {
+        mergeKeylessResults(
+            query = query,
+            intent = intent,
+            resultSize = resultSize,
+            fetches = fetches,
+            usedBackends = fetches.map { it.backend }.distinct(),
+        )
+    } catch (e: IllegalStateException) {
+        throw IllegalStateException(
+            listOf(e.message, failureText.takeIf { it.isNotBlank() }?.let { "Backend errors: $it" })
+                .filterNotNull().joinToString(" ")
+        )
+    }
+    if (failureText.isBlank()) merged
+    else merged.copy(note = listOfNotNull(merged.note, "Some sources failed: $failureText".take(500)).joinToString(" "))
 }
 
 internal fun mergeKeylessResults(
@@ -320,7 +306,22 @@ private suspend fun keylessHttpGet(url: String): String {
         .header("Accept-Language", SearchService.acceptLanguage)
         .build()
     SearchService.httpClient.newCall(request).await().use { response ->
-        if (!response.isSuccessful) error("Open Search backend HTTP ${response.code} for $url")
+        if (!response.isSuccessful) error("HTTP ${response.code}")
+        return response.body?.string().orEmpty()
+    }
+}
+
+private suspend fun keylessHttpPostForm(url: String, form: String): String {
+    val request = Request.Builder()
+        .url(url)
+        .header("User-Agent", keylessUserAgentFor(url))
+        .header("Accept", "text/html,application/xhtml+xml")
+        .header("Accept-Language", SearchService.acceptLanguage)
+        .header("Referer", url)
+        .post(form.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
+        .build()
+    SearchService.httpClient.newCall(request).await().use { response ->
+        if (!response.isSuccessful) error("HTTP ${response.code}")
         return response.body?.string().orEmpty()
     }
 }

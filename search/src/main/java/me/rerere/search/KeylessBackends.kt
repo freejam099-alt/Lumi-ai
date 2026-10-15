@@ -279,3 +279,27 @@ internal enum class QwantKind(val label: String) {
     NEWS("News"),
     IMAGES("Images"),
 }
+
+internal suspend fun fetchMojeek(
+    query: String,
+    httpGet: suspend (String) -> String,
+): List<SearchResultItem> =
+    parseMojeekHtml(httpGet("https://www.mojeek.com/search?q=${query.urlEncode()}"))
+
+internal suspend fun fetchDuckDuckGoHtmlPost(
+    query: String,
+    httpPostForm: suspend (String, String) -> String,
+): List<SearchResultItem> =
+    parseDuckDuckGoHtml(httpPostForm("https://html.duckduckgo.com/html/", "q=${query.urlEncode(spaceAsPlus = true)}&b=&kl="))
+
+internal suspend fun fetchBingImages(
+    query: String,
+    httpGet: suspend (String) -> String,
+): List<KeylessImage> =
+    parseBingImages(httpGet("https://www.bing.com/images/async?q=${query.urlEncode()}&first=0&count=20&mmasync=1"))
+
+internal suspend fun fetchOpenverseImages(
+    query: String,
+    httpGet: suspend (String) -> String,
+): List<KeylessImage> =
+    parseOpenverseImages(httpGet("https://api.openverse.org/v1/images/?q=${query.urlEncode()}&page_size=12"))

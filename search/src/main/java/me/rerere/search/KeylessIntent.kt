@@ -16,7 +16,7 @@ internal fun classifyKeylessIntent(query: String, topicHint: String? = null): Ke
             "weather", "forecast" -> return KeylessIntent.WEATHER
             "news", "headline", "headlines" -> return KeylessIntent.NEWS
             "sports", "sport", "scores" -> return KeylessIntent.SPORTS
-            "images", "image", "photos", "photo" -> return KeylessIntent.IMAGES
+            "images", "image", "photos", "photo", "gambar", "foto" -> return KeylessIntent.IMAGES
             "encyclopedia", "wiki", "wikipedia" -> return KeylessIntent.ENCYCLOPEDIA
             "general", "web" -> return KeylessIntent.GENERAL
         }
@@ -119,13 +119,13 @@ private fun sanitizeLocation(raw: String): String? {
 
 private val WEATHER_REGEX = Regex(
     """\b(weather|forecast|temperature|humidity|uv\s*index|feels\s+like|wind\s+speed|""" +
-        """rain(?:y|ing)?|snow(?:y|ing)?|meteo|气温|天气|天気予報?|날씨|погода|الطقس)\b""",
+        """rain(?:y|ing)?|snow(?:y|ing)?|meteo|cuaca|prakiraan|hujan|suhu|kelembapan|kelembaban|气温|天气|天気予報?|날씨|погода|الطقس)\b""",
     RegexOption.IGNORE_CASE,
 )
 private val NEWS_REGEX = Regex(
     """\b(news|headline|headlines|breaking|current events?|latest (?:news|headlines)|""" +
         """what(?:'s|s| is) happening|what happened (?:today|yesterday|last night|this week|recently|tonight)|""" +
-        """今日新闻|新闻|ニュース|뉴스|новост|أخبار)\b""",
+        """berita|kabar terbaru|terkini|今日新闻|新闻|ニュース|뉴스|новост|أخبار)\b""",
     RegexOption.IGNORE_CASE,
 )
 private val SPORTS_REGEX = Regex(
@@ -134,7 +134,7 @@ private val SPORTS_REGEX = Regex(
     RegexOption.IGNORE_CASE,
 )
 private val IMAGE_REGEX = Regex(
-    """\b(images?|pictures?|photos?|logo|illustration|screenshot|""" +
+    """\b(images?|pictures?|photos?|gambar|foto|wallpaper|ilustrasi|logo|illustration|screenshot|""" +
         """what does .+ look like|show me (?:a |an )?(?:picture|photo|image))\b""",
     RegexOption.IGNORE_CASE,
 )
