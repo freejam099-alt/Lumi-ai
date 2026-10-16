@@ -1,5 +1,7 @@
 package me.rerere.rikkahub.ui.components.ui
 
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.LocalIndication
@@ -54,8 +56,8 @@ import me.rerere.ui.glass.seaGlassPress
 import me.rerere.ui.glass.SeaGlassTint
 
 private val CardGroupCorner = 28.dp
-private val CardGroupItemSpacing = 2.dp
-private val CardGroupInnerCorner = 8.dp
+private val CardGroupItemSpacing = 0.dp
+private val CardGroupInnerCorner = 0.dp
 
 private data class CardGroupItem(
     val onClick: (() -> Unit)?,
@@ -193,29 +195,13 @@ fun CardGroupIcon(
         targetValue = contentColor,
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
-    // Sea Glass: squircle kaca berwarna + grain + bayangan berwarna, tanpa border.
-    // Tint dipilih dari kelompok warna yang dikirim pemanggil supaya tetap jelas di mode terang/gelap.
-    val dark = LocalDarkMode.current
-    val cs = MaterialTheme.colorScheme
-    val tint = when (containerColor) {
-        cs.secondaryContainer -> SeaGlassTint.Periwinkle
-        cs.tertiaryContainer -> SeaGlassTint.Aqua
-        cs.errorContainer -> SeaGlassTint.Rose
-        else -> SeaGlassTint.Sky
-    }
-    Box(
-        modifier = modifier
-            .size(46.dp)
-            .seaGlass(RoundedCornerShape(16.dp), tint, dark, elevation = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = tint.content(dark),
-        )
-    }
+    // Gaya Kimi: ikon garis tipis polos tanpa wadah, warna teks utama.
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        modifier = modifier.size(24.dp),
+        tint = MaterialTheme.colorScheme.onSurface,
+    )
 }
 
 // 标题行右侧显示当前取值的小标签，比如滑块的数值
@@ -297,13 +283,26 @@ private fun CardGroupListItem(
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant
+    val dividerInset = if (item.leadingContent != null) 56.dp else 16.dp
+    val chevronColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val chevronContent: @Composable () -> Unit = {
+        Icon(
+            imageVector = me.rerere.rikkahub.ui.theme.SeaIcons.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = chevronColor,
+        )
+    }
+    val trailing: (@Composable () -> Unit)? =
+        if (item.onClick != null && item.trailingContent == null) chevronContent else item.trailingContent
 
     val topCorner by animateDpAsState(
-        targetValue = if (isPressed || count == 1 || isFirst) CardGroupCorner else CardGroupInnerCorner,
+        targetValue = if (count == 1 || isFirst) CardGroupCorner else CardGroupInnerCorner,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
     )
     val bottomCorner by animateDpAsState(
-        targetValue = if (isPressed || count == 1 || isLast) CardGroupCorner else CardGroupInnerCorner,
+        targetValue = if (count == 1 || isLast) CardGroupCorner else CardGroupInnerCorner,
         animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
     )
 
@@ -311,7 +310,18 @@ private fun CardGroupListItem(
         headlineContent = item.headlineContent ?: {},
         modifier = item.modifier
             .fillMaxWidth()
-            .seaGlassPress(interactionSource, pressedScale = 0.985f)
+            .seaGlassPress(interactionSource, pressedScale = 0.99f)
+            .drawBehind {
+                if (!isLast) {
+                    val y = size.height - 0.5.dp.toPx()
+                    drawLine(
+                        color = dividerColor,
+                        start = Offset(dividerInset.toPx(), y),
+                        end = Offset(size.width - 16.dp.toPx(), y),
+                        strokeWidth = 1.dp.toPx(),
+                    )
+                }
+            }
             .clip(
                 RoundedCornerShape(
                     topStart = topCorner,
@@ -332,7 +342,7 @@ private fun CardGroupListItem(
         overlineContent = item.overlineContent,
         supportingContent = item.supportingContent,
         leadingContent = item.leadingContent,
-        trailingContent = item.trailingContent,
+        trailingContent = trailing,
         colors = item.colors ?: CustomColors.listItemColors,
     )
 }
@@ -348,9 +358,9 @@ fun CardGroup(
 
     Column(modifier = modifier) {
         if (title != null) {
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) {
+            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
                 ProvideTextStyle(MaterialTheme.typography.titleSmallEmphasized) {
-                    Box(modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)) {
+                    Box(modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 8.dp)) {
                         title()
                     }
                 }

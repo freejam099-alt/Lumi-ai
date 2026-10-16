@@ -22,17 +22,18 @@ object SeaIcons {
             viewportWidth = 24f,
             viewportHeight = 24f,
         )
-        if (fill != null) {
+        // Gaya Kimi: garis tipis tanpa isi; hanya ikon "solid" (Stop) yang terisi penuh.
+        if (fill != null && name == "SeaStop") {
             b.addPath(
                 pathData = addPathNodes(fill),
                 fill = SolidColor(Color.Black),
-                fillAlpha = 0.28f,
+                fillAlpha = 1f,
             )
         }
         b.addPath(
             pathData = addPathNodes(stroke),
             stroke = SolidColor(Color.Black),
-            strokeLineWidth = 1.8f,
+            strokeLineWidth = 1.6f,
             strokeLineCap = StrokeCap.Round,
             strokeLineJoin = StrokeJoin.Round,
         )
@@ -167,6 +168,11 @@ object SeaIcons {
             "M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16zM3 11h16M11 3c2.2 2.3 3.3 5 3.3 8S13.200 16.700 11 19c-2.200-2.300-3.300-5-3.300-8S8.800 5.300 11 3zM17.500 17.500L21 21",
             "M11 3a8 8 0 1 0 0 16a8 8 0 1 0 0-16z",
         )
+    }
+
+    val ChevronRight by lazy { icon("SeaChevronRight", "M9.500 6l6 6-6 6") }
+    val ChatAdd by lazy {
+        icon("SeaChatAdd", "M12 4a8 8 0 0 0-6.900 12L4 20l4.100-1.100A8 8 0 1 0 12 4zM12 9v6M9 12h6")
     }
 
     /** Tombol kirim: panah ke atas yang membulat */

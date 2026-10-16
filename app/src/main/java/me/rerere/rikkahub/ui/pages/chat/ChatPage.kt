@@ -1,5 +1,10 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import androidx.compose.foundation.layout.Box
+import me.rerere.ui.glass.GlassPill
+import me.rerere.rikkahub.ui.components.ui.KimiEmptyState
+import me.rerere.rikkahub.ui.theme.SeaIcons
+import me.rerere.rikkahub.Screen
 import me.rerere.ui.glass.GlassIconButton
 import me.rerere.ui.glass.SeaGlassTint
 import androidx.compose.foundation.layout.Spacer
@@ -412,6 +417,7 @@ private fun ChatPageContent(
             },
             containerColor = Color.Transparent,
         ) { innerPadding ->
+            Box(modifier = Modifier.fillMaxSize()) {
             ChatList(
                 innerPadding = innerPadding,
                 conversation = conversation,
@@ -487,6 +493,21 @@ private fun ChatPageContent(
                     vm.saveConversationAsync()
                 },
             )
+                if (conversation.messageNodes.isEmpty() && loadingJob == null && !previewMode) {
+                    KimiEmptyState(
+                        greeting = stringResource(
+                            R.string.kimi_empty_greeting,
+                            setting.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
+                        ),
+                        chips = listOf(
+                            Triple(SeaIcons.Globe, stringResource(R.string.kimi_chip_translate)) { navController.navigate(Screen.Translator) },
+                            Triple(SeaIcons.Picture, stringResource(R.string.kimi_chip_media)) { navController.navigate(Screen.MediaCreationSessions) },
+                            Triple(SeaIcons.Book, stringResource(R.string.kimi_chip_history)) { navController.navigate(Screen.History) },
+                        ),
+                        modifier = Modifier.padding(innerPadding),
+                    )
+                }
+            }
         }
 
         if (showFilesSheet) {
@@ -655,24 +676,13 @@ private fun TopBar(
             }
         },
         actions = {
-            GlassIconButton(
-                onClick = {
-                    onClickMenu()
-                },
-                tint = SeaGlassTint.Periwinkle,
-            ) {
-                Icon(if (previewMode) HugeIcons.Cancel01 else HugeIcons.LeftToRightListBullet, "Chat Options")
-            }
-            Spacer(Modifier.width(8.dp))
-            GlassIconButton(
-                onClick = {
-                    onNewChat()
-                },
-                modifier = Modifier.padding(end = 8.dp),
-                tint = SeaGlassTint.Sky,
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Icon(HugeIcons.MessageAdd01, "New Message")
+            GlassPill(modifier = Modifier.padding(end = 8.dp), tint = SeaGlassTint.Periwinkle) {
+                IconButton(onClick = { onNewChat() }) {
+                    Icon(HugeIcons.MessageAdd01, "New Message")
+                }
+                IconButton(onClick = { onClickMenu() }) {
+                    Icon(if (previewMode) HugeIcons.Cancel01 else HugeIcons.LeftToRightListBullet, "Chat Options")
+                }
             }
         },
     )

@@ -161,7 +161,7 @@ fun ChatInput(
 
     val themeShape = MaterialTheme.shapes.largeIncreased
     // Sea Glass: input bar lebih besar dan membulat lembut
-    val containerShape = RoundedCornerShape(28.dp)
+    val containerShape = RoundedCornerShape(34.dp)
     val seaDark = LocalDarkMode.current
     val modelListState = rememberModelListState(
         modelId = chatModel?.id,
@@ -258,6 +258,7 @@ fun ChatInput(
                     ),
                 shape = containerShape,
                 tonalElevation = 0.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else containerColor,
             ) {
                 Column(
@@ -411,29 +412,21 @@ private fun SendButton(
     modifier: Modifier = Modifier,
 ) {
     val showStop = loading && empty
-    val dark = LocalDarkMode.current
     val interactionSource = androidx.compose.runtime.remember {
         androidx.compose.foundation.interaction.MutableInteractionSource()
     }
     val active = showStop || !empty
-    val tint = when {
-        showStop -> SeaGlassTint.Rose
-        else -> SeaGlassTint.Aqua
-    }
-    // Aktif: squircle berwarna kaca. Kosong: pill datar tanpa tekstur (seperti konsep Sea Glass).
-    val shape = rememberSeaGlassMorphShape(active)
-    val base = if (active) {
-        Modifier.seaGlass(shape, tint, dark, elevation = 10.dp)
-    } else {
-        Modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainerHigh)
-    }
+    // Gaya Kimi: lingkaran putih (aktif) dengan ikon gelap, abu gelap saat kosong
+    val container = if (active) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainerHigh
+    val iconColor = if (active) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .seaGlassPress(interactionSource)
-            .size(width = 48.dp, height = 40.dp)
+            .size(44.dp)
             .testTag("chat_send_button")
-            .then(base)
+            .clip(CircleShape)
+            .background(container)
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -443,13 +436,10 @@ private fun SendButton(
             )
     ) {
         Icon(
-            imageVector = when {
-                showStop -> SeaIcons.Stop
-                else -> SeaIcons.Send
-            },
+            imageVector = if (showStop) SeaIcons.Stop else SeaIcons.Send,
             contentDescription = stringResource(if (showStop) R.string.stop else R.string.send),
-            tint = if (active) tint.content(dark) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-            modifier = Modifier.size(24.dp)
+            tint = iconColor,
+            modifier = Modifier.size(22.dp)
         )
     }
 }
@@ -461,11 +451,11 @@ private fun ActionIconButton(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(40.dp),
+        modifier = Modifier.size(44.dp),
         shape = CircleShape,
         tonalElevation = 0.dp,
-        shadowElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        shadowElevation = 0.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Box(
             modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center

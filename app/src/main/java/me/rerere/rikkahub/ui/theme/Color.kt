@@ -189,7 +189,7 @@ object CustomColors {
         @Composable get() = CardDefaults.cardColors(containerColor = colorScheme.surfaceBright)
 
     val listItemColors: ListItemColors
-        @Composable get() = ListItemDefaults.colors(containerColor = colorScheme.surfaceBright.copy(alpha = 0.82f))
+        @Composable get() = ListItemDefaults.colors(containerColor = colorScheme.surfaceContainer)
 
     // 浅色模式下页面背景和悬浮工具栏默认的底色相同，用强调色的版本才分得开
     val floatingToolbarColors: FloatingToolbarColors

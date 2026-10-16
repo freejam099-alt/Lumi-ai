@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.theme
 
+import androidx.compose.ui.unit.dp
 import android.os.Build
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -107,6 +108,13 @@ fun RikkahubTheme(
         MaterialExpressiveTheme(
             colorScheme = colorSchemeConverted,
             typography = Typography,
+            shapes = androidx.compose.material3.Shapes(
+                extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                small = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                medium = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                large = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                extraLarge = androidx.compose.foundation.shape.RoundedCornerShape(34.dp),
+            ),
             content = content,
             motionScheme = MotionScheme.expressive()
         )

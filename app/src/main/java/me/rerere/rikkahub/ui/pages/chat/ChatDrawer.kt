@@ -1,5 +1,7 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import me.rerere.ui.glass.GlassIconButton
+import me.rerere.rikkahub.ui.theme.SeaIcons
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -208,6 +210,7 @@ fun ChatDrawerContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                Box(modifier = Modifier.size(50.dp)) {
                 UIAvatar(
                     name = settings.displaySetting.userNickname.ifBlank { stringResource(R.string.user_default_name) },
                     value = settings.displaySetting.userAvatar,
@@ -220,8 +223,15 @@ fun ChatDrawerContent(
                             )
                         }
                     },
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.matchParentSize(),
                 )
+                // Tap foto profil membuka Settings
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { navController.navigate(Screen.Setting) }
+                )
+                }
 
                 Column(
                     modifier = Modifier.weight(1f),
@@ -254,6 +264,12 @@ fun ChatDrawerContent(
                     Greeting(
                         style = MaterialTheme.typography.labelMedium,
                     )
+                }
+                GlassIconButton(
+                    onClick = { navigateToChatPage(navController) },
+                    size = 44.dp,
+                ) {
+                    Icon(SeaIcons.ChatAdd, contentDescription = "New chat", modifier = Modifier.size(22.dp))
                 }
             }
 

@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,133 +77,87 @@ enum class SeaGlassTint(
     fun edge(dark: Boolean) = if (dark) edgeDark else edgeLight
     fun core(dark: Boolean) = if (dark) coreDark else coreLight
     fun glow(dark: Boolean) = if (dark) glowDark else glowLight
-    fun content(dark: Boolean) = if (dark) contentDark else contentLight
 
-    /** Bayangan biru-abu yang diwarnai tint, seperti di referensi. */
-    fun shadow(dark: Boolean): Color =
-        lerp(core(dark), if (dark) Color(0xFF05070D) else Color(0xFF3C4C6A), 0.55f)
+    /** Warna isi permukaan datar gaya Kimi (tanpa gradasi). */
+    fun fill(dark: Boolean): Color = when (this) {
+        Sky -> if (dark) Color(0xFF1F3355) else Color(0xFFDCE8FF)
+        Rose -> if (dark) Color(0xFF3A1F25) else Color(0xFFFFE3E6)
+        else -> if (dark) Color(0xFF2A2A2A) else Color(0xFFECECF0)
+    }
+
+    /** Warna ikon/teks di atas permukaan. */
+    fun content(dark: Boolean): Color = when (this) {
+        Sky -> if (dark) Color(0xFF6FA2FF) else Color(0xFF1E54D6)
+        Rose -> if (dark) Color(0xFFFF5A6A) else Color(0xFFD7263D)
+        else -> if (dark) Color(0xFFEDEDED) else Color(0xFF111111)
+    }
+
+    fun shadow(dark: Boolean): Color = Color.Black
 }
 
-/** Grain terrazzo: bintik abu/putih 2px yang tidak beraturan, di-tile sekali saja. */
-private val GrainBrush: ShaderBrush by lazy {
-    val size = 128
-    val rnd = Random(11)
-    val px = IntArray(size * size)
-    fun put(x: Int, y: Int, argb: Int) {
-        if (x in 0 until size && y in 0 until size) px[y * size + x] = argb
-    }
-    repeat(size * size / 14) {
-        val x = rnd.nextInt(size)
-        val y = rnd.nextInt(size)
-        val alpha = 46 + rnd.nextInt(96)
-        val light = rnd.nextFloat() < 0.38f
-        val argb = if (light) {
-            (alpha shl 24) or 0xFFFFFF
-        } else {
-            (alpha shl 24) or 0x7C8CA6
-        }
-        put(x, y, argb)
-        if (rnd.nextBoolean()) put(x + 1, y, argb)
-        if (rnd.nextFloat() < 0.35f) put(x, y + 1, argb)
-    }
-    val bmp = Bitmap.createBitmap(px, size, size, Bitmap.Config.ARGB_8888)
-    ShaderBrush(ImageShader(bmp.asImageBitmap(), TileMode.Repeated, TileMode.Repeated))
-}
+private fun borderColor(dark: Boolean) = if (dark) Color(0x2EFFFFFF) else Color(0x1A000000)
 
-/** Bayangan berwarna yang jatuh ke bawah. Harus dipasang SEBELUM clip/background. */
-fun Modifier.seaGlassShadow(
-    shape: Shape,
-    color: Color,
-    elevation: Dp = 10.dp,
-): Modifier = this.shadow(
-    elevation = elevation,
-    shape = shape,
-    clip = false,
-    ambientColor = color.copy(alpha = 0.50f),
-    spotColor = color.copy(alpha = 0.90f),
-)
+/** Tanpa bayangan: gaya Kimi datar. Dipertahankan agar pemanggil lama tetap kompatibel. */
+fun Modifier.seaGlassShadow(shape: Shape, color: Color, elevation: Dp = 0.dp): Modifier = this
 
-/** Isi kaca: tepi terang, inti pekat lembut (blotch), cahaya bawah, rim-light, grain. Brush di-cache per ukuran. */
-private fun Modifier.glassFill(
-    edge: Color, core: Color, glow: Color, dark: Boolean, grain: Float, alpha: Float = 1f,
-): Modifier = this.drawWithCache {
-    val w = size.width
-    val h = size.height
-    val edgeColor = edge.copy(alpha = alpha)
-    val blotch = Brush.radialGradient(
-        colors = listOf(core.copy(alpha = 0.98f * alpha), core.copy(alpha = 0.6f * alpha), Color.Transparent),
-        center = Offset(w * 0.5f, h * 0.42f),
-        radius = maxOf(w, h) * 0.62f,
-    )
-    val glowBrush = Brush.verticalGradient(
-        colors = listOf(Color.Transparent, glow.copy(alpha = (if (dark) 0.45f else 0.8f) * alpha)),
-        startY = h * 0.45f,
-        endY = h,
-    )
-    val rim = Brush.verticalGradient(
-        colors = listOf(Color.White.copy(alpha = if (dark) 0.14f else 0.38f), Color.Transparent),
-        endY = h * 0.35f,
-    )
-    onDrawBehind {
-        drawRect(edgeColor)
-        drawRect(blotch)
-        drawRect(glowBrush)
-        drawRect(rim)
-        if (grain > 0f) drawRect(GrainBrush, alpha = grain)
-    }
-}
-
-/** Lapisan grain terrazzo saja, untuk dipakai di atas gambar/gradien buatan sendiri. */
-fun Modifier.seaGlassGrain(alpha: Float = 0.8f): Modifier =
-    this.drawBehind { drawRect(GrainBrush, alpha = alpha) }
-
-/** Permukaan kaca laut berwarna. Tanpa border. */
+/**
+ * Permukaan gaya Kimi: isi datar gelap/terang dengan garis tepi tipis (efek kaca "palsu"),
+ * tanpa grain dan tanpa bayangan.
+ */
 fun Modifier.seaGlass(
     shape: Shape,
     tint: SeaGlassTint,
     dark: Boolean,
-    elevation: Dp = 10.dp,
-    grain: Boolean = true,
+    elevation: Dp = 0.dp,
+    grain: Boolean = false,
 ): Modifier = this
-    .seaGlassShadow(shape, tint.shadow(dark), elevation)
     .clip(shape)
-    .glassFill(tint.edge(dark), tint.core(dark), tint.glow(dark), dark, if (grain) 1f else 0f)
+    .drawBehind {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        drawOutline(outline, tint.fill(dark))
+        drawOutline(outline, borderColor(dark), style = Stroke(width = 1.5.dp.toPx()))
+    }
 
-/** Kaca dengan warna sendiri, mis. diturunkan dari ColorScheme (ikon Settings). */
 fun Modifier.seaGlassColor(
     shape: Shape,
     top: Color,
     bottom: Color,
     shadowColor: Color,
     dark: Boolean,
-    elevation: Dp = 8.dp,
-): Modifier = this
-    .seaGlassShadow(shape, lerp(shadowColor, if (dark) Color(0xFF05070D) else Color(0xFF3C4C6A), 0.45f), elevation)
-    .clip(shape)
-    .glassFill(top, bottom, lerp(top, Color.White, 0.5f), dark, 0.8f)
+    elevation: Dp = 0.dp,
+): Modifier = this.clip(shape).drawBehind { drawRect(bottom) }
 
-/** Permukaan non-aktif: putih datar, tanpa tekstur, bayangan biru-abu tipis (Keypad/Mute di referensi). */
+/** Permukaan non-aktif datar. */
 fun Modifier.seaGlassFlat(
     shape: Shape,
     color: Color,
     dark: Boolean,
-    elevation: Dp = 3.dp,
-): Modifier = this
-    .seaGlassShadow(shape, if (dark) Color(0xFF05070D) else Color(0xFF8DA0C0), elevation)
-    .clip(shape)
-    .drawBehind { drawRect(color) }
+    elevation: Dp = 0.dp,
+): Modifier = this.clip(shape).drawBehind { drawRect(color) }
+
+/** Tidak ada grain di gaya Kimi. */
+fun Modifier.seaGlassGrain(alpha: Float = 0f): Modifier = this
+
+/** Lapisan isi di atas blur backdrop untuk input bar: gelap pekat dengan sedikit tembus. */
+fun Modifier.seaGlassFrost(
+    tint: SeaGlassTint,
+    dark: Boolean,
+    strength: Float = 0.9f,
+): Modifier = this.drawBehind {
+    drawRect(if (dark) Color(0xE61C1C1C) else Color(0xE6FFFFFF))
+}
 
 /** Fisika sentuh: menyusut dengan pegas lalu memantul kembali. */
 @Composable
 fun Modifier.seaGlassPress(
     interactionSource: InteractionSource,
-    pressedScale: Float = 0.92f,
+    pressedScale: Float = 0.94f,
 ): Modifier {
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed) pressedScale else 1f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow),
-        label = "seaGlassPressScale",
+        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMedium),
+        label = "pressScale",
     )
     return this.graphicsLayer {
         scaleX = scale
@@ -210,25 +165,6 @@ fun Modifier.seaGlassPress(
     }
 }
 
-/** Bentuk yang berubah dari pill ke squircle saat aktif, dengan pegas. */
+/** Bentuk tetap pill bila aktif atau tidak (Kimi tidak mengubah bentuk tombol). */
 @Composable
-fun rememberSeaGlassMorphShape(active: Boolean): Shape {
-    val percent by animateFloatAsState(
-        targetValue = if (active) 32f else 50f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
-        label = "seaGlassMorph",
-    )
-    return remember(percent) { RoundedCornerShape(percent = percent.toInt().coerceIn(0, 50)) }
-}
-
-/**
- * Lapisan kaca tembus pandang di atas blur backdrop (depth of field): konten di belakang
- * tetap terbaca samar, sementara warna, grain, dan rim-light kaca laut tetap terlihat jelas.
- */
-fun Modifier.seaGlassFrost(
-    tint: SeaGlassTint,
-    dark: Boolean,
-    strength: Float = 0.62f,
-): Modifier = this.glassFill(
-    tint.edge(dark), tint.core(dark), tint.glow(dark), dark, grain = 0.85f, alpha = strength,
-)
+fun rememberSeaGlassMorphShape(active: Boolean): Shape = remember { RoundedCornerShape(50) }
