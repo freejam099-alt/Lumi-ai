@@ -1590,4 +1590,8 @@
   <string name="setting_model_page_video_model">Video Model</string>
   <string name="setting_model_page_video_model_desc">Model used to generate videos</string>
   <string name="setting_provider_page_video_model">Video</string>
+  <string name="kimi_empty_greeting">Hi, %1$s. What shall we do today?</string>
+  <string name="kimi_chip_translate">Translator</string>
+  <string name="kimi_chip_media">Create media</string>
+  <string name="kimi_chip_history">History</string>
 </resources>

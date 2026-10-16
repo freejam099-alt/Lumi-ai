@@ -1445,4 +1445,8 @@
   <string name="setting_model_page_video_model">Model Video</string>
   <string name="setting_model_page_video_model_desc">Model untuk membuat video</string>
   <string name="setting_provider_page_video_model">Video</string>
+  <string name="kimi_empty_greeting">Hai, %1$s. Mau melakukan apa hari ini?</string>
+  <string name="kimi_chip_translate">Penerjemah</string>
+  <string name="kimi_chip_media">Buat media</string>
+  <string name="kimi_chip_history">Riwayat</string>
 </resources>
