@@ -25,7 +25,11 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawOutline
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -96,6 +100,14 @@ enum class SeaGlassTint(
     fun shadow(dark: Boolean): Color = Color.Black
 }
 
+private fun DrawScope.paintOutline(outline: Outline, color: Color, style: DrawStyle = Fill) {
+    when (outline) {
+        is Outline.Rectangle -> drawRect(color, outline.rect.topLeft, outline.rect.size, style = style)
+        is Outline.Rounded -> drawPath(Path().apply { addRoundRect(outline.roundRect) }, color, style = style)
+        is Outline.Generic -> drawPath(outline.path, color, style = style)
+    }
+}
+
 private fun borderColor(dark: Boolean) = if (dark) Color(0x2EFFFFFF) else Color(0x1A000000)
 
 /** Tanpa bayangan: gaya Kimi datar. Dipertahankan agar pemanggil lama tetap kompatibel. */
@@ -115,8 +127,8 @@ fun Modifier.seaGlass(
     .clip(shape)
     .drawBehind {
         val outline = shape.createOutline(size, layoutDirection, this)
-        drawOutline(outline, tint.fill(dark))
-        drawOutline(outline, borderColor(dark), style = Stroke(width = 1.5.dp.toPx()))
+        paintOutline(outline, tint.fill(dark))
+        paintOutline(outline, borderColor(dark), Stroke(width = 1.5.dp.toPx()))
     }
 
 fun Modifier.seaGlassColor(
