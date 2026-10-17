@@ -170,6 +170,7 @@ object SeaIcons {
         )
     }
 
+    val Voice by lazy { icon("SeaVoice", "M8.500 12h.01M12.500 8.500a5 5 0 0 1 0 7M16 5.500a9 9 0 0 1 0 13") }
     val ChevronRight by lazy { icon("SeaChevronRight", "M9.500 6l6 6-6 6") }
     val ChatAdd by lazy {
         icon("SeaChatAdd", "M12 4a8 8 0 0 0-6.900 12L4 20l4.100-1.100A8 8 0 1 0 12 4zM12 9v6M9 12h6")

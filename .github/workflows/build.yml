@@ -128,6 +128,13 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
+      - name: Compute checksum
+        id: sum
+        run: |
+          f=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          echo "sha=$(sha256sum "$f" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "size=$(stat -c%s "$f")" >> "$GITHUB_OUTPUT"
+
       - name: Publish latest release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -135,6 +142,11 @@ jobs:
           tag_name: latest
           name: Lumi AI (arm64 release)
           prerelease: true
+          body: |
+            Lumi AI (arm64, signed v1+v2+v3). Build ${{ github.run_number }}.
+            Ukuran: ${{ steps.sum.outputs.size }} byte
+            SHA-256: ${{ steps.sum.outputs.sha }}
+            Setelah mengunduh, cocokkan ukuran file. Kalau berbeda, unduhan terpotong dan perlu diulang.
           files: app/build/outputs/apk/release/*.apk
 
       - name: Upload build reports on failure

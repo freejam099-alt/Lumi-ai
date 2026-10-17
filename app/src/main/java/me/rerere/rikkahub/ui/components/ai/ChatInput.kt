@@ -293,6 +293,15 @@ fun ChatInput(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
+                        ActionIconButton(
+                            onClick = onMoreClick
+                        ) {
+                            Icon(
+                                imageVector = HugeIcons.Add01,
+                                contentDescription = stringResource(R.string.more_options)
+                            )
+                        }
+
                         Row(
                             modifier = Modifier
                                 .weight(1f)
@@ -342,13 +351,14 @@ fun ChatInput(
 
                         }
 
-                        ActionIconButton(
-                            onClick = onMoreClick
-                        ) {
-                            Icon(
-                                imageVector = HugeIcons.Add01,
-                                contentDescription = stringResource(R.string.more_options)
-                            )
+                        if (onStartVoiceMode != null && !voiceState.isActive) {
+                            ActionIconButton(onClick = { onStartVoiceMode() }) {
+                                Icon(
+                                    imageVector = SeaIcons.Voice,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                )
+                            }
                         }
 
                         if (!voiceState.isActive && (asrState.isAvailable || asrState.isRecording)) {

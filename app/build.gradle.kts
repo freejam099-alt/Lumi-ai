@@ -39,6 +39,10 @@ android {
 
     signingConfigs {
         create("release") {
+            // v1+v2+v3 supaya APK bisa diinstal di semua penginstal (termasuk MIUI/HyperOS)
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
             val localProperties = Properties()
             val localPropertiesFile = rootProject.file("local.properties")
 
