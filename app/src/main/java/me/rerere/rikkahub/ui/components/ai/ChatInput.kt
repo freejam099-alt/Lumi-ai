@@ -1,5 +1,6 @@
 package me.rerere.rikkahub.ui.components.ai
 
+import me.rerere.ui.glass.liquidGlass
 import androidx.compose.foundation.background
 import me.rerere.rikkahub.ui.theme.LocalDarkMode
 import me.rerere.ui.glass.SeaGlassTint
@@ -250,6 +251,7 @@ fun ChatInput(
                         elevation = 14.dp,
                     )
                     .clip(containerShape)
+                    .liquidGlass(containerShape, alpha = 0.8f, refractionHeight = 18.dp, refractionAmount = 46.dp)
                     .chatInputHaze(
                         hazeState = hazeState,
                         displaySetting = settings.displaySetting,

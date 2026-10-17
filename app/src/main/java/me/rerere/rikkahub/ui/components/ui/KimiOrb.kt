@@ -41,64 +41,98 @@ import kotlin.math.PI
 import kotlin.math.sin
 
 /**
- * Orb biru bermata seperti maskot Kimi: melayang pelan, bola mata melirik ke samping,
- * dan berkedip beberapa detik sekali. Animasi dibaca di fase gambar saja (ringan).
+ * Orb biru bermata ala Kimi, dibuat hidup: bernapas (skala), melayang, memipih-memanjang
+ * ringan, kilau bergeser, bola mata melirik dan berkedip. Mode [thinking]: cincin cahaya
+ * berputar, mata menatap ke atas, dan denyut lebih cepat. Semua dibaca di fase gambar.
  */
 @Composable
-fun KimiOrb(modifier: Modifier = Modifier, size: Dp = 96.dp) {
+fun KimiOrb(modifier: Modifier = Modifier, size: Dp = 96.dp, thinking: Boolean = false) {
     val transition = rememberInfiniteTransition(label = "orb")
-    val float by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(3600, easing = androidx.compose.animation.core.LinearEasing)),
+    val breath by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(if (thinking) 1100 else 3200, easing = androidx.compose.animation.core.LinearEasing)),
+        label = "orbBreath",
+    )
+    val floatPhase by transition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(4600, easing = androidx.compose.animation.core.LinearEasing)),
         label = "orbFloat",
     )
     val look by transition.animateFloat(
-        initialValue = -1f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(2800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        initialValue = -1f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(2300, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "orbLook",
     )
+    val spin by transition.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = androidx.compose.animation.core.LinearEasing)),
+        label = "orbSpin",
+    )
     val blink by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1f,
+        initialValue = 1f, targetValue = 1f,
         animationSpec = infiniteRepeatable(
             keyframes {
-                durationMillis = 4200
+                durationMillis = 3600
                 1f at 0
-                1f at 3800
-                0.08f at 3920
-                1f at 4080
+                1f at 3100
+                0.06f at 3220
+                1f at 3380
+                1f at 3420
+                0.06f at 3500
+                1f at 3600
             }
         ),
         label = "orbBlink",
     )
     Canvas(modifier = modifier.size(size)) {
-        val r = this.size.minDimension / 2f
-        val dy = sin(float * 2f * PI.toFloat()) * r * 0.06f
-        val center = Offset(this.size.width / 2f, this.size.height / 2f + dy)
-        // cincin gelap tipis
-        drawCircle(Color(0xFF1B2A44), radius = r, center = center)
+        val base = this.size.minDimension / 2f * 0.86f
+        val tau = 2f * PI.toFloat()
+        val squash = sin(breath * tau) * 0.035f
+        val rx = base * (1f + squash)
+        val ry = base * (1f - squash)
+        val dy = sin(floatPhase * tau) * base * 0.07f
+        val c = Offset(this.size.width / 2f, this.size.height / 2f + dy)
+        val glowR = base * (1.45f + 0.1f * sin(breath * tau))
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF63A2FF), Color(0xFF2F73FF), Color(0xFF1F5BEA)),
-                center = Offset(center.x - r * 0.2f, center.y - r * 0.3f),
-                radius = r * 1.1f,
+                colors = listOf(Color(0x552F73FF), Color.Transparent),
+                center = c, radius = glowR,
             ),
-            radius = r * 0.92f,
-            center = center,
+            radius = glowR, center = c,
         )
-        // kilau
-        drawCircle(Color.White.copy(alpha = 0.18f), radius = r * 0.28f, center = Offset(center.x - r * 0.35f, center.y - r * 0.45f))
-        // mata
-        val eyeW = r * 0.14f
-        val eyeH = r * 0.30f * blink
-        val gap = r * 0.36f
-        val ox = look * r * 0.10f
+        drawOval(Color(0xFF16233D), topLeft = Offset(c.x - rx * 1.06f, c.y - ry * 1.06f), size = Size(rx * 2.12f, ry * 2.12f))
+        drawOval(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF7AB0FF), Color(0xFF3A7DFF), Color(0xFF1B54E0)),
+                center = Offset(c.x - rx * 0.25f, c.y - ry * 0.35f),
+                radius = base * 1.25f,
+            ),
+            topLeft = Offset(c.x - rx, c.y - ry),
+            size = Size(rx * 2f, ry * 2f),
+        )
+        // kilau yang bergeser pelan
+        val hx = c.x - rx * (0.38f + 0.06f * look)
+        drawCircle(Color.White.copy(alpha = 0.22f), radius = base * 0.26f, center = Offset(hx, c.y - ry * 0.48f))
+        drawCircle(Color.White.copy(alpha = 0.10f), radius = base * 0.12f, center = Offset(c.x + rx * 0.42f, c.y + ry * 0.5f))
+        if (thinking) {
+            drawArc(
+                brush = Brush.sweepGradient(listOf(Color.Transparent, Color(0xFF9CC4FF), Color.Transparent), center = c),
+                startAngle = spin, sweepAngle = 110f, useCenter = false,
+                topLeft = Offset(c.x - rx * 1.14f, c.y - ry * 1.14f),
+                size = Size(rx * 2.28f, ry * 2.28f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = base * 0.07f, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            )
+        }
+        // mata: pil vertikal; saat berpikir menatap ke atas
+        val eyeW = base * 0.15f
+        val eyeH = base * 0.32f * blink
+        val gap = rx * 0.34f
+        val ox = if (thinking) 0f else look * rx * 0.12f
+        val oy = if (thinking) -ry * 0.16f else ry * 0.02f
         listOf(-gap, gap).forEach { dx ->
             drawRoundRect(
                 color = Color.White,
-                topLeft = Offset(center.x + dx + ox - eyeW / 2f, center.y - r * 0.05f - eyeH / 2f),
+                topLeft = Offset(c.x + dx + ox - eyeW / 2f, c.y + oy - eyeH / 2f),
                 size = Size(eyeW, eyeH),
                 cornerRadius = CornerRadius(eyeW / 2f, eyeW / 2f),
             )

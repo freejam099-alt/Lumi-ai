@@ -1,5 +1,9 @@
 package me.rerere.rikkahub.ui.pages.chat
 
+import androidx.compose.runtime.CompositionLocalProvider
+import me.rerere.ui.glass.liquidBackdropSource
+import me.rerere.ui.glass.rememberLiquidBackdrop
+import me.rerere.ui.glass.LocalLiquidBackdrop
 import androidx.compose.foundation.layout.Box
 import me.rerere.ui.glass.GlassPill
 import me.rerere.rikkahub.ui.components.ui.KimiEmptyState
@@ -323,7 +327,9 @@ private fun ChatPageContent(
         modifier = Modifier.fillMaxSize()
     ) {
         AssistantBackground(setting = setting, modifier = Modifier.hazeSource(hazeState))
-        Scaffold(
+        val liquidBackdrop = rememberLiquidBackdrop()
+    CompositionLocalProvider(LocalLiquidBackdrop provides liquidBackdrop) {
+    Scaffold(
             topBar = {
                 TopBar(
                     settings = setting,
@@ -416,8 +422,9 @@ private fun ChatPageContent(
                 )
             },
             containerColor = Color.Transparent,
-        ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize()) {
+        )
+    } { innerPadding ->
+            Box(modifier = Modifier.fillMaxSize().liquidBackdropSource(liquidBackdrop)) {
             ChatList(
                 innerPadding = innerPadding,
                 conversation = conversation,

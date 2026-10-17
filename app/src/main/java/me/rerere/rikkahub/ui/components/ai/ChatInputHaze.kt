@@ -38,14 +38,8 @@ internal fun Modifier.chatInputHaze(
     // Sea Glass (Material 4): backdrop blur halus (depth of field) + lapisan kaca berwarna,
     // grain, dan rim-light. Menggantikan pilihan Blur dan Glass lama.
     val darkMode = LocalDarkMode.current
-    return this
-        .hazeBlur(
-            input = HazeInput.Sources(hazeState),
-            style = HazeBlurStyle.Material3 {
-                blurRadius(20.dp)
-            },
-        )
-        .seaGlassFrost(tint = SeaGlassTint.Sky, dark = darkMode, strength = 0.6f)
+    // Tanpa blur langsung: lapisan isi tembus pandang, refraksi dari liquid glass di ChatInput.
+    return this.seaGlassFrost(tint = SeaGlassTint.Periwinkle, dark = darkMode)
 }
 
 // Haze 按系统夜间模式选玻璃的明暗预设，应用内单独设置主题时会选错（深色主题下被提亮发白），

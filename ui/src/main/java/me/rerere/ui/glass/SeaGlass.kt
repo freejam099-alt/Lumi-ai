@@ -127,9 +127,10 @@ fun Modifier.seaGlass(
     .clip(shape)
     .drawBehind {
         val outline = shape.createOutline(size, layoutDirection, this)
-        paintOutline(outline, tint.fill(dark))
+        paintOutline(outline, tint.fill(dark).copy(alpha = 0.62f))
         paintOutline(outline, borderColor(dark), Stroke(width = 1.5.dp.toPx()))
     }
+    .liquidGlass(shape)
 
 fun Modifier.seaGlassColor(
     shape: Shape,
@@ -157,7 +158,7 @@ fun Modifier.seaGlassFrost(
     dark: Boolean,
     strength: Float = 0.9f,
 ): Modifier = this.drawBehind {
-    drawRect(if (dark) Color(0xE61C1C1C) else Color(0xE6FFFFFF))
+    drawRect(if (dark) Color(0xA61C1C1C) else Color(0xA6FFFFFF))
 }
 
 /** Fisika sentuh: menyusut dengan pegas lalu memantul kembali. */
