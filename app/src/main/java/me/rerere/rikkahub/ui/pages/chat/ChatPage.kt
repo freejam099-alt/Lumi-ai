@@ -422,8 +422,7 @@ private fun ChatPageContent(
                 )
             },
             containerColor = Color.Transparent,
-        )
-    } { innerPadding ->
+        ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().liquidBackdropSource(liquidBackdrop)) {
             ChatList(
                 innerPadding = innerPadding,
@@ -516,6 +515,7 @@ private fun ChatPageContent(
                 }
             }
         }
+    }
 
         if (showFilesSheet) {
             ChatFilesPickerSheet(
